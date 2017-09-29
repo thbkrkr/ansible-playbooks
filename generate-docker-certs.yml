@@ -1,0 +1,17 @@
+---
+- hosts: all
+  gather_facts: false
+  become: yes
+
+  tasks:
+  - name: Check docker certs files existence on the local machine
+    local_action: stat path=/ops/clusters/{{ lookup('env','CLUSTER') }}/machines/{{ inventory_hostname }}
+    register: stat_result
+
+  - name: Generate docker cert files
+    become: false
+    local_action:
+      shell docker-machine-certs --out-dir {{ docker_machine_certs_out_dir }} --server-ip {{ ansible_host }} --server-dns {{ inventory_hostname }} --machine-name {{ inventory_hostname }} --ssh-user {{ docker_machine_ssh_user }} --ssh-key-path {{ ssh_key_path }}
+    register: gen_dm_certs
+    when: stat_result.stat.exists == False
+    tags: docker-machine
