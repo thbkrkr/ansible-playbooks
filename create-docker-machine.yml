@@ -16,7 +16,8 @@
       local_action:
         shell docker-machine config {{ inventory_hostname }}
       register: dm_present
-      failed_when: "'Error' in dm_present.stderr"
+      changed_when: "'does not exist' in dm_present.stderr or 'Error' in dm_present.stderr"
+      failed_when: false
       ignore_errors: yes
 
     - name: Create generic docker machine
@@ -28,9 +29,9 @@
           --generic-ip-address {{ hostvars[inventory_hostname]['ansible_host'] }}
           {{ docker_machine_options }}
             {{ inventory_hostname }}
-      when: dm_present|failed
+      when: dm_present|changed
 
-    - name: Debug docker machine creation
+    - name: Print docker machine creation command
       debug:
         msg: |
           docker-machine create -d generic
@@ -39,4 +40,5 @@
             --generic-ip-address {{ hostvars[inventory_hostname]['ansible_host'] }}
             {{ docker_machine_options }}
               {{ inventory_hostname }}
+      when: dm_present|changed
       tags: debug
