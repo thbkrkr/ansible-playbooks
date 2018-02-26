@@ -5,6 +5,7 @@
 #
 ---
 - hosts: all
+  become: false
   gather_facts: false
 
   vars:
@@ -12,7 +13,6 @@
 
   tasks:
     - name: Check docker machine existence
-      become: false
       local_action:
         shell docker-machine config {{ inventory_hostname }}
       register: dm_present
@@ -21,7 +21,6 @@
       ignore_errors: yes
 
     - name: Create generic docker machine
-      become: false
       local_action:
         shell docker-machine create -d generic
           --generic-ssh-user {{ ansible_user }}
@@ -31,14 +30,14 @@
             {{ inventory_hostname }}
       when: dm_present|changed
 
-    - name: Print docker machine creation command
-      debug:
-        msg: |
-          docker-machine create -d generic
-            --generic-ssh-user {{ ansible_user }}
-            --generic-ssh-key  {{ ansible_private_key_file }}
-            --generic-ip-address {{ hostvars[inventory_hostname]['ansible_host'] }}
-            {{ docker_machine_options }}
-              {{ inventory_hostname }}
-      when: dm_present|changed
-      tags: debug
+    # - name: Print docker machine creation command
+    #   debug:
+    #     msg: |
+    #       docker-machine create -d generic
+    #         --generic-ssh-user {{ ansible_user }}
+    #         --generic-ssh-key  {{ ansible_private_key_file }}
+    #         --generic-ip-address {{ hostvars[inventory_hostname]['ansible_host'] }}
+    #         {{ docker_machine_options }}
+    #           {{ inventory_hostname }}
+    #   when: dm_present|changed
+    #   tags: debug
